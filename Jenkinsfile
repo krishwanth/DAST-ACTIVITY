@@ -1,7 +1,7 @@
 pipeline {
   agent any
   environment {
-    DASTARDLY_TARGET_URL='https://datafoundry.ai/'
+    DASTARDLY_TARGET_URL='http://evil.com/'
     IMAGE_WITH_TAG='public.ecr.aws/portswigger/dastardly:latest'
     JUNIT_TEST_RESULTS_FILE='dastardly-report.xml'
   }
