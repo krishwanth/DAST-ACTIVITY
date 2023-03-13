@@ -4,6 +4,7 @@ pipeline {
     DASTARDLY_TARGET_URL='http://testfire.net/'
     IMAGE_WITH_TAG='public.ecr.aws/portswigger/dastardly:latest'
     JUNIT_TEST_RESULTS_FILE='dastardly-report.xml'
+    PDF_REPORT_FILE='dastardly-report.pdf'
   }
   stages {
     stage ("Docker run Dastardly from Burp Suite Scan") {
@@ -38,13 +39,26 @@ pipeline {
         '''
       }
     }
+    stage ("Generate PDF report") {
+      steps {
+        sh '''
+          docker run --rm -v ${WORKSPACE}:${WORKSPACE}:rw \
+          -w ${WORKSPACE} \
+          portswigger/dastardly-report-generator \
+          java -jar dastardly-report-generator.jar \
+          ${JUNIT_TEST_RESULTS_FILE} \
+          ${PDF_REPORT_FILE}
+        '''
+        archiveArtifacts artifacts: "${PDF_REPORT_FILE}"
+      }
+    }
   }
   post {
     always {
       script {
         def dastardlyReport = junit testResults: "${JUNIT_TEST_RESULTS_FILE}"
-        def failedTests = dastardlyReport.getFailures()
-        if (failedTests.size() > 0) {
+        def failedTestsCount = dastardlyReport.getFailCount()
+        if (failedTestsCount > 0) {
           echo "Ignoring test failures..."
         } else {
           echo "All tests passed."
