@@ -42,6 +42,13 @@ pipeline {
   post {
     always {
       junit testResults: "${JUNIT_TEST_RESULTS_FILE}", skipPublishingChecks: true
+      script {
+        def dastardlyReport = junit testResults: "${JUNIT_TEST_RESULTS_FILE}"
+        def failedTests = dastardlyReport.getFailures()
+        if (failedTests.size() > 0) {
+          echo "Ignoring test failures..."
+        } else {
+          echo "All tests passed."
     }
   }
 }
